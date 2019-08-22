@@ -1,1 +1,189 @@
-print("Hello World")
+import numpy as np
+import matplotlib.pyplot as plt
+import random as rnd
+
+epsilon = 0.5
+episodes = 10000
+ep_current = 0
+show_every = 1000
+
+board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+player_1_moves = [[]]
+player_1_sit = [[]]
+
+player_2_moves = [[]]
+player_2_sit = [[]]
+
+q_tables = {}
+
+
+def game():
+    done = False
+    count = 0
+    print("game #: "+str(ep_current))
+    while not done:
+        print()
+        what = rnd.randint(0,1)
+        if what == 0:
+            move = rand_move(board)
+            add_to_board(move,'A')
+            player_1_moves.append(move)
+            player_1_sit.append(board_to_string(board))
+        else:
+            move = biggest(get_move(board_to_string(board)))
+            add_to_board(move, 'A')
+            player_1_moves.append(move)
+            player_1_sit.append(board_to_string(board))
+        print(board[0])
+        print(board[1])
+        print(board[2])
+        for y in range(0, 3):
+            if board[y][0] == ('A') and board[y][1] == ('A') and board[y][2] == ('A'):
+                print("A wins")
+                update_q(player_1_moves, player_1_sit,True)
+                done = True
+
+                break
+            if board[0][y] == ('A') and board[1][y] == ('A') and board[2][y] == ('A'):
+                print("A wins")
+                update_q(player_1_moves, player_1_sit, True)
+                done = True
+
+                break
+        if board[0][0] == ('A') and board[1][1] == ('A') and board[2][2] == ('A'):
+            print("A wins")
+            update_q(player_1_moves, player_1_sit,True)
+            done = True
+
+            break
+        if board[2][0] == ('A') and board[1][1] == ('A') and board[0][2] == ('A'):
+            print("A wins")
+            update_q(player_1_moves, player_1_sit,True)
+            done = True
+
+            break
+
+        for y in range(3):
+            for x in range(3):
+                if board[y][x] != 0:
+                    count = count + 1
+        if count == 9:
+            count = 0
+            print("tie")
+            done = True
+            break
+        count = 0
+
+        print()
+        what = rnd.randint(0, 1)
+        if what == 0:
+            move = rand_move(board)
+            add_to_board(move, 'B')
+            player_2_moves.append(move)
+            player_2_sit.append(board_to_string(board))
+        else:
+            move = biggest(get_move(board_to_string(board)))
+            add_to_board(move, 'B')
+            player_2_moves.append(move)
+            player_2_sit.append(board_to_string(board))
+        print(board[0])
+        print(board[1])
+        print(board[2])
+        for y in range(0, 3):
+            if board[y][0] == ('B') and board[y][1] == ('B') and board[y][2] == ('B'):
+                print("B wins")
+                update_q(player_2_moves,player_2_sit, True)
+
+                done = True
+
+                break
+            if board[0][y] == ('B') and board[1][y] == ('B') and board[2][y] == ('B'):
+                print("B wins")
+                update_q(player_2_moves,player_2_sit, True)
+
+                done = True
+
+                break
+        if board[0][0] == ('B') and board[1][1] == ('B') and board[2][2] == ('B'):
+            print("B wins")
+            update_q(player_2_moves, player_2_sit, True)
+
+            done = True
+
+            break
+        if board[2][0] == ('B') and board[1][1] == ('B') and board[0][2] == ('B'):
+            print("B wins")
+            update_q(player_2_moves, player_2_sit,True)
+
+            done = True
+
+            break
+
+
+def add_to_board(pos, team):
+    a = 0
+    for y in range(3):
+        for x in range(3):
+            if pos == a and board[y][x] == 0:
+                board[y][x] = team
+                return True
+            a = a + 1
+    return False
+
+
+def board_to_string(board_t):
+    s = ""
+    for i in board_t:
+        for x in i:
+            s = s + str(x)
+    return s
+
+
+def get_move(sit):
+    t0 = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    if not sit in q_tables:
+        q_tables[sit] = t0
+        return q_tables[sit]
+    else:
+        return q_tables[sit]
+
+
+def biggest(s):
+    big = -1000
+    for y in range(0, 3):
+        for x in range(0, 3):
+            if s[y][x] > big:
+                big = s[y][x]
+    bigs = [[]]
+    for y in range(0, 3):
+        for x in range(0, 3):
+            if s[y][x] == big:
+                bigs.append([[x],[y]])
+    if len(bigs)>2:
+        return rand_move(board)
+    choice = rnd.randint(1,len(bigs)-1)
+    return bigs[choice][1] * 3 + bigs[choice][0]
+
+
+def rand_move(t):
+    spots = [[]]
+    for y in range(0,3):
+        for x in range(0,3):
+            if t[y][x] == 0:
+                spots.append([x,y])
+    choice = rnd.randint(1, len(spots)-1)
+    return spots[choice][1] * 3 + spots[choice][0]
+
+
+def update_q(move,situation,win):
+    if win == True:
+        for i in range(1,len(move)-1):
+            table = q_tables[situation[i]]
+            table[move[i]//3][move[i]%3] += 2
+    if win == False:
+        for i in range(1,len(move)-1):
+            table = q_tables[situation[i]]
+            table[move[i]//3][move[i]%3] -= 1
+
+game()
